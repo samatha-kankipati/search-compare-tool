@@ -1,0 +1,25 @@
+*.iml
+*.ipr
+*.iws
+target
+lor
+hs*log
+*.orig
+.idea
+
+com.sun.aas.instanceRoot_IS_UNDEFINED
+
+#ignore contracts holding directories , as it points to a contracts repository and not to be tracked / modified or committed
+
+*/target
+*/*.wadl
+*/*.iml
+*/*.ipr
+*/*.iws
+*/*lor
+*/hs*log
+*/*.orig
+*/.idea
+*/com.sun.aas.instanceRoot_IS_UNDEFINED
+
+.DS_Store
