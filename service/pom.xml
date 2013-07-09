@@ -194,16 +194,6 @@
                             <goal>testCompile</goal>
                         </goals>
                     </execution>
-                    <execution>
-                        <id>filterResources</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>execute</goal>
-                        </goals>
-                        <configuration>
-                            <source>${pom.basedir}/src/main/filters/filter.groovy</source>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
 
