@@ -4,12 +4,14 @@ common:
   my.core.api.endpoint: https://ws.integration.core.rackspace.com/ctkapi
   my.core.api.username: rcameron
   my.core.api.password: qwerty
-  my.mismatch.tickets.source.url: http://test.elastic.search.api.rackspace.com/queuetest/test-mismatchedTickets
+  my.mismatchTickets.source.url: http://test.elastic.search.api.rackspace.com
+  my.mismatchTickets.source.path: /queuetest/dev-mismatchedTickets/
 
 local:
   my.core.api.endpoint: https://ws.integration.core.rackspace.com/ctkapi
   my.core.db.url: jdbc:postgresql://integration-readslave.db.core.rackspace.com:5432/core_int
-  my.mismatch.tickets.source.url: http://test.elastic.search.api.rackspace.com/queuetest/test-mismatchedTickets
+  my.mismatchTickets.source.url: http://test.elastic.search.api.rackspace.com
+  my.mismatchTickets.source.path: /queuetest/dev-mismatchedTickets/
 
 production:
   ## Core API
@@ -18,3 +20,4 @@ production:
 
   my.core.api.password: <TOKEN_CORE_API_PASSWORD>
   my.mismatchTickets.source.url: http://test.elastic.search.api.rackspace.com/queuetest/mismatchedTickets
+  my.mismatchTickets.source.path: /queuetest/mismatchedTickets/
