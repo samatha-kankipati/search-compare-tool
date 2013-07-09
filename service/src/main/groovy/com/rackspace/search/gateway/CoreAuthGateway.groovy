@@ -6,15 +6,14 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
-import com.rackspace.search.common.annotation.InjectLogger
 import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 @Component
 @Qualifier("coreAuthGateway")
 class CoreAuthGateway {
 
-    @InjectLogger
-    private Logger logger;
+    private static Logger logger = LoggerFactory.getLogger(CoreAuthGateway.class)
 
     @Value('${core.api.endpoint}')
     private String coreEndPoint

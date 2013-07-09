@@ -1,9 +1,6 @@
 package com.rackspace.search.gateway
 
-import com.rackspace.search.common.annotation.InjectLogger
-import com.rackspace.search.gateway.HttpGatewayClient
-import com.rackspace.search.service.JobService
-import com.rackspace.search.service.core.CoreTicketProcessor
+import com.rackspace.search.HttpGatewayClient
 import groovy.json.JsonSlurper
 import groovyx.net.http.RESTClient
 import org.json.JSONObject
@@ -14,12 +11,12 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
+import org.slf4j.LoggerFactory
 
 @Component
 class CoreTicketGateway {
 
-    @InjectLogger
-    Logger logger
+    Logger logger = LoggerFactory.getLogger(CoreTicketGateway.class)
 
     @Autowired
     @Qualifier("coreAuthGateway")
@@ -31,11 +28,6 @@ class CoreTicketGateway {
     @Value('${http.connection.timeout.in.milliseconds}')
     private int httpConnectionTimeout
 
-    @Autowired
-    private CoreTicketProcessor coreTicketProcessor
-
-    @Autowired
-    private JobService jobService
 
     private String methodName = "query"
     private JSONObject requestData
@@ -81,7 +73,7 @@ class CoreTicketGateway {
         logger.info("Got Exception while reading tickets from CTK api. Attempt #${attempt}, Exception: ${e.class}, ${e.message}")
         if (e.hasProperty("response") && e.response.status == 403) {
             authGateway.setSessionExpired(true)
-                logger.info("Reading data from CTK api. session expired. Will reattempt get new session.")
+            logger.info("Reading data from CTK api. session expired. Will reattempt get new session.")
         }  else {
             logger.error("Attempt #${attempt}. can't recover. escalating exception.")
             throw e
