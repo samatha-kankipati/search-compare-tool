@@ -29,6 +29,7 @@ class HttpGatewayClient {
         HttpConnectionParams.setConnectionTimeout(httpParams,connectionTimeout)
         HttpConnectionParams.setSoTimeout(httpParams,connectionTimeout)
     }
+
     private static void registerTrustAllCerts(RESTClient client ) {
 
         TrustManager[] trustAllCerts = [

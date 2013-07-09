@@ -142,9 +142,33 @@
             <version>20090211</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.9</version>
+        </dependency>
+
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/filters</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>filter.yaml</include>
+                </includes>
+                <targetPath>../</targetPath>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -193,6 +217,16 @@
                             <goal>generateTestStubs</goal>
                             <goal>testCompile</goal>
                         </goals>
+                    </execution>
+                    <execution>
+                        <id>filterResources</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>${pom.basedir}/src/main/filters/filter.groovy</source>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
