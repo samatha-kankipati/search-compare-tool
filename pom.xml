@@ -4,8 +4,11 @@
 
     <groupId>com.rackspace.api</groupId>
     <artifactId>search-compare-tool</artifactId>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
     <version>0.1.0_b1-SNAPSHOT</version>
+    <modules>
+        <module>service</module>
+    </modules>
     <name>Search Compare tool</name>
 
     <scm>
