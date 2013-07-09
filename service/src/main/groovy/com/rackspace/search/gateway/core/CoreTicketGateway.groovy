@@ -60,8 +60,8 @@ class CoreTicketGateway {
     }
 
     def runPostCallOnCoreGateway(jsonRequestData, ticketNumbers) {
-        jsonRequestData.load_arg.values = new JsonSlurper().parseText("""["number", "in", [""" + StringUtils.join
-                (ticketNumbers, ",")+ "]")
+        jsonRequestData.load_arg.values = new JsonSlurper().parseText("[\"number\", \"in\", [\"" + StringUtils.join
+                (ticketNumbers, "\",\"")+ "\"]]")
         logger.info(" Reading core tickets: POST call to ${client.getUri()}\n Payload: ${jsonRequestData}")
 
         client.post(

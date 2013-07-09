@@ -7,7 +7,7 @@
 		"offset": 0
 	},
 	"attributes": ["account.id", "account.number", "number", "created", "modified", "subject", "category.name",	"priority.name", "queue.name",
-	               "status.name", "source.name", "assignee.name", "last_public_comment_date", "subcategory.name", "difficulty", "has_linux_servers",
+	               "status.name", "source.name", "assignee.name", "subcategory.name", "difficulty", "has_linux_servers",
                    "severity.name", "has_windows_servers", "account.service_level_name","account.support_team.support_territory.code", "queue.id",
                    "assignee.employee_userid", "status.types.name"]
 }
