@@ -1,0 +1,25 @@
+common:
+
+  ## Core API
+  my.core.api.endpoint: https://ws.integration.core.rackspace.com/ctkapi
+  my.core.api.username: rcameron
+  my.core.api.password: qwerty
+
+
+test:
+  my.core.api.endpoint: https://ws.integration.core.rackspace.com/ctkapi
+  my.core.db.url: jdbc:postgresql://integration-readslave.db.core.rackspace.com:5432/core_int
+
+
+staging:
+  ## Core API
+  my.core.api.endpoint: https://ws.staging.core.rackspace.com/ctkapi
+  my.core.api.username: rcameron
+  my.core.api.password: <TOKEN_CORE_API_PASSWORD
+
+production:
+  ## Core API
+  my.core.api.endpoint: https://ws.core.rackspace.com/ctkapi
+  my.core.api.username: ticketsearchapi
+
+  my.core.api.password: <TOKEN_CORE_API_PASSWORD>
