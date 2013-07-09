@@ -1,4 +1,4 @@
-package com.rackspace.search.gateway
+package com.rackspace.search.gateway.core
 
 import com.rackspace.search.HttpGatewayClient
 import groovy.json.JsonSlurper
