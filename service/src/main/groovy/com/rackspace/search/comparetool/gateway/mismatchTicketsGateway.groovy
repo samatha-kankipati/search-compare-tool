@@ -56,13 +56,36 @@ class MismatchTicketsGateway {
 
     public compareTickets(){
         def mismatches = getMismatchTickets()
+        def ticketNumbersToCompare = getTicketNumbers(mismatches)
+
+        //pass these ticket number to CTK gateway : tickets as JSONArray
+        //pass these ticket number to ticket search gateway : tickets as JSONArray
 
         mismatches.each {mismatch ->
-            mismatch._source.status = "UNMATCHED"
+            //mismatch._source.status = "UNMATCHED"
+            def compareResult = compareTicket()
+            /*
+              mismatch._source.status =  "UNMATCHED" (if compareResult is not empty) | "MATCHED" (if compareResult is empty)
+             */
         }
         updateMismatchticets(mismatches)
     }
 
+    private compareTicket(def ctkTicketsArray, def tsTickesArray, String ticketToCompare) {
+        def fieldsToCompare = ["queue.id", "status", "hasWindowsServers", "hasLinuxServers", "assignee.sso", "createdAt", "account.highProfile",
+                               "priority", "lastPublicCommentDate", "accountServiceLevel", "account.number", "account.team", "difficulty",
+                               "category", "statusTypes"]
+
+        //get current ticket from CTK Array & TS Array
+        //compare CTK & TS ticket for given fields in  fieldsToCompare
+        //return List of fields that doesn't match as  as string
+
+    }
+    private getTicketNumbers(def mismatches){
+        mismatches.collect () {mismatch ->
+            mismatch._source.ticketRef
+        }
+    }
     public updateMismatchticets(def updatedData){
         //post these updated json Objects (mismatched tickets) to elastic search.
 
@@ -73,6 +96,7 @@ class MismatchTicketsGateway {
             def reported = DateTime.parse(jsonData.reportDate)
             def unmatchedTimePeriod = (new Duration(reported, comparisonTime)).toStandardSeconds().getSeconds()
             def matchAttempts = (jsonData.has("matchAttempts"))? jsonData.get("matchAttempts") :  0
+
             jsonData.put("matchAttempts", matchAttempts+1)
             jsonData.put("lastComparedTime", DateTime.now(DateTimeZone.UTC).toString())
             jsonData.put("dataMismatchPeriodSeconds", unmatchedTimePeriod)
