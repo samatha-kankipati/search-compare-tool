@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
+import org.apache.commons.lang.StringUtils
 
 @Component
 class SearchGateway {
@@ -27,14 +28,14 @@ class SearchGateway {
         client = HttpGatewayClient.getRESTClient(searchEndpoint, httpConnectionTimeout)
     }
 
-    def readTickets(Map<String, String> searchParams) {
+    def readTickets(List<String> ticketNumbers) {
 
         def response
         try {
             response =
                 client.get(
                         requestContentType: "application/json",
-                        query:  searchParams)
+                        query: [number: StringUtils.join(ticketNumbers, ",")])
             logger.info("Reading tickets: returned from Search api call.")
             return response
         } catch (Exception e) {

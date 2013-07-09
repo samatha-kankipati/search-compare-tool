@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
 import org.slf4j.LoggerFactory
+import org.apache.commons.lang.StringUtils
 
 @Component
 class CoreTicketGateway {
@@ -43,13 +44,13 @@ class CoreTicketGateway {
         requestData = new JsonSlurper().parse(new InputStreamReader(ips))
     }
 
-    def readCoreTickets(String searchParams, int offset) {
+    def readCoreTickets(List<String> ticketNumbers) {
         int attempt = 1
         def jsonRequestData = requestData as JSONObject
         def response
         while (attempt < maxAttempts) {
             try {
-                response = runPostCallOnCoreGateway(jsonRequestData, searchParams, offset)
+                response = runPostCallOnCoreGateway(jsonRequestData, ticketNumbers)
                 logger.info("Reading core tickets: returned from ATK api call.")
                 return response
             } catch (Exception e) {
@@ -58,9 +59,9 @@ class CoreTicketGateway {
         }
     }
 
-    def runPostCallOnCoreGateway(jsonRequestData, searchParams, offset) {
-        jsonRequestData.load_arg.values = new JsonSlurper().parseText("[" + searchParams + "]")
-        jsonRequestData.load_arg.offset = offset
+    def runPostCallOnCoreGateway(jsonRequestData, ticketNumbers) {
+        jsonRequestData.load_arg.values = new JsonSlurper().parseText("[\"number\", \"in\", [\"" + StringUtils.join
+                (ticketNumbers, "\",\"")+ "\"]]")
         logger.info(" Reading core tickets: POST call to ${client.getUri()}\n Payload: ${jsonRequestData}")
 
         client.post(
