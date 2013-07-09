@@ -1,4 +1,4 @@
-package com.rackspace.search.gateway
+package com.rackspace.search.gateway.core
 
 import groovyx.net.http.RESTClient
 import org.springframework.beans.factory.annotation.Qualifier
