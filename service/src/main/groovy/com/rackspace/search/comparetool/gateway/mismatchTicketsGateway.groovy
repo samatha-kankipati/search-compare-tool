@@ -1,10 +1,15 @@
 package com.rackspace.search.comparetool.gateway
+
+import com.rackspace.search.gateway.core.CoreTicketGateway
+import com.rackspace.search.gateway.ticketsearch.SearchGateway
 import groovyx.net.http.RESTClient
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import org.joda.time.Duration
+import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
@@ -32,7 +37,10 @@ class MismatchTicketsGateway {
 
     private RESTClient client
 
-
+    @Autowired
+    private CoreTicketGateway coreTicketGateway
+    @Autowired
+    private SearchGateway ticketSearchGateway
 
     @PostConstruct
     public setup(){
@@ -58,28 +66,54 @@ class MismatchTicketsGateway {
         def mismatches = getMismatchTickets()
         def ticketNumbersToCompare = getTicketNumbers(mismatches)
 
-        //pass these ticket number to CTK gateway : tickets as JSONArray
-        //pass these ticket number to ticket search gateway : tickets as JSONArray
+        println ("\n\nTickets to Compare: \n ${ticketNumbersToCompare}")
+        def ctkTicketsArray = coreTicketGateway.readCoreTickets(ticketNumbersToCompare)
+        def tsTicketsArray = ticketSearchGateway.readTickets(ticketNumbersToCompare)
+
+        println "\n\nCTK:\n ${ctkTicketsArray}"
+        println "\n\nTS:\n ${tsTicketsArray}"
 
         mismatches.each {mismatch ->
-            //mismatch._source.status = "UNMATCHED"
-            def compareResult = compareTicket()
-            /*
-              mismatch._source.status =  "UNMATCHED" (if compareResult is not empty) | "MATCHED" (if compareResult is empty)
-             */
+            def compareResult = compareTicket(ctkTicketsArray, tsTicketsArray, mismatch._source.ticketRef)
+            if(compareResult) {
+                mismatch._source.put("mismatchDetails", compareResult.join(","))
+            }
+            else {
+                mismatch._source.status =  "MATCHED"
+            }
         }
-        updateMismatchticets(mismatches)
+        //updateMismatchticets(mismatches)
     }
 
-    private compareTicket(def ctkTicketsArray, def tsTickesArray, String ticketToCompare) {
+    private compareTicket(def ctkTicketsArray, def tsTicketsArray, String ticketToCompare) {
         def fieldsToCompare = ["queue.id", "status", "hasWindowsServers", "hasLinuxServers", "assignee.sso", "createdAt", "account.highProfile",
                                "priority", "lastPublicCommentDate", "accountServiceLevel", "account.number", "account.team", "difficulty",
                                "category", "statusTypes"]
+        List<String> mismatchesForThsiTicket = new ArrayList<String>()
 
-        //get current ticket from CTK Array & TS Array
+        //TODO: get current ticket from CTK Array & TS Array
+        JSONObject currentCTKTicket = ctkTicketsArray.find() {ticket -> ticket.number.equals(ticketToCompare)}
+        JSONObject currentTSTicket = tsTicketsArray.find() {ticket -> ticket.number.equals(ticketToCompare)}
+
+        println (currentTSTicket)
         //compare CTK & TS ticket for given fields in  fieldsToCompare
-        //return List of fields that doesn't match as  as string
-
+        fieldsToCompare.each { field ->
+            switch(field){
+                case "account.highProfile":
+                case "createdAt":
+                case "lastPublicCommentDate":
+                case "statusTypes":
+                    break;
+                default:
+                    String ctkValue = currentCTKTicket.has(field)? currentCTKTicket.get(field) :""
+                    String tsValue = currentTSTicket.has(field)? currentTSTicket."${field}" :""
+                    if (!ctkValue.equals(tsValue)) {
+                        mismatchesForThsiTicket.add("${field}[CTK:${ctkValue}, TicketSearch:${tsValue}]")
+                    }
+            }
+        }
+        println ("\n${ticketToCompare}, ${mismatchesForThsiTicket}")
+        mismatchesForThsiTicket
     }
     private getTicketNumbers(def mismatches){
         mismatches.collect () {mismatch ->
