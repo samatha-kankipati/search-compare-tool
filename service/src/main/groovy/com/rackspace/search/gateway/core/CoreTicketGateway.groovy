@@ -3,16 +3,16 @@ package com.rackspace.search.gateway.core
 import com.rackspace.search.HttpGatewayClient
 import groovy.json.JsonSlurper
 import groovyx.net.http.RESTClient
+import org.apache.commons.lang.StringUtils
 import org.json.JSONObject
 import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
-import org.slf4j.LoggerFactory
-import org.apache.commons.lang.StringUtils
 
 @Component
 class CoreTicketGateway {
@@ -61,7 +61,7 @@ class CoreTicketGateway {
 
     def runPostCallOnCoreGateway(jsonRequestData, ticketNumbers) {
         jsonRequestData.load_arg.values = new JsonSlurper().parseText("[\"number\", \"in\", [\"" + StringUtils.join
-                (ticketNumbers, "\",\"")+ "\"]]")
+                (ticketNumbers, "\",\"") + "\"]]")
         logger.info(" Reading core tickets: POST call to ${client.getUri()}\n Payload: ${jsonRequestData}")
 
         client.post(
@@ -75,7 +75,7 @@ class CoreTicketGateway {
         if (e.hasProperty("response") && e.response.status == 403) {
             authGateway.setSessionExpired(true)
             logger.info("Reading data from CTK api. session expired. Will reattempt get new session.")
-        }  else {
+        } else {
             logger.error("Attempt #${attempt}. can't recover. escalating exception.")
             throw e
         }

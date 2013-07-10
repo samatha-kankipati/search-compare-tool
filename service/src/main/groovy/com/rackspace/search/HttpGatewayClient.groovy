@@ -18,7 +18,7 @@ class HttpGatewayClient {
     public static RESTClient getRESTClient(String url, int connectionTimeout) throws Exception {
         RESTClient client = new RESTClient(url)
         setConnectionTimeout(client, connectionTimeout)
-        if(url.startsWith("https")) {
+        if (url.startsWith("https")) {
             registerTrustAllCerts(client)
         }
         return client
@@ -26,11 +26,11 @@ class HttpGatewayClient {
 
     private static void setConnectionTimeout(RESTClient client, int connectionTimeout) {
         HttpParams httpParams = client.getClient().getParams()
-        HttpConnectionParams.setConnectionTimeout(httpParams,connectionTimeout)
-        HttpConnectionParams.setSoTimeout(httpParams,connectionTimeout)
+        HttpConnectionParams.setConnectionTimeout(httpParams, connectionTimeout)
+        HttpConnectionParams.setSoTimeout(httpParams, connectionTimeout)
     }
 
-    private static void registerTrustAllCerts(RESTClient client ) {
+    private static void registerTrustAllCerts(RESTClient client) {
 
         TrustManager[] trustAllCerts = [
                 new X509TrustManager() {
