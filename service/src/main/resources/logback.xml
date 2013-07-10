@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<configuration>
+
+    <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/searchCompareTool.log</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+
+            <!-- Keep the logs around for 30 days -->
+            <maxHistory>30</maxHistory>
+
+            <!-- rollover on first day of the week -->
+            <fileNamePattern>logs/searchCompareTool-%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!-- or whenever the file size reaches 100MB -->
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %-26(%d [%thread]) %-5level %logger{40} - %msg%n
+            </Pattern>
+        </layout>
+    </appender>
+
+
+    <logger name="com.rackspace.search.comparetool">
+        <level value="INFO"/>
+    </logger>
+
+    <root>
+        <level value="INFO"/>
+        <appender-ref ref="ROLLING"/>
+    </root>
+
+</configuration>
