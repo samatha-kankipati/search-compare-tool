@@ -109,7 +109,7 @@ class MismatchTicketsProcessor {
                 switch (field) {
                     case "account.highProfile":
                         def ctkValue = currentCTKTicket?."${field}" ?: []
-                        def tsValue = readValueFromTSTicketJson(currentTSTicket, field)
+                        def tsValue = readValueFromTSTicketJson(currentTSTicket, field)?:false
                         if (!(ctkValue.contains("High Profile") == tsValue)) {
                             mismatchesForThsiTicket.add("${field}[CTK:${ctkValue}, TicketSearch:${tsValue}]")
                         }
