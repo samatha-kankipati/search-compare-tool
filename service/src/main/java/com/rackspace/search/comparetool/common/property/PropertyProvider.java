@@ -1,4 +1,4 @@
-package com.rackspace.search.common.property;
+package com.rackspace.search.comparetool.common.property;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;

@@ -1,6 +1,5 @@
-package com.rackspace.search
+package com.rackspace.search.comparetool
 
-import com.rackspace.search.comparetool.CompareMismatchTickets
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
 import org.springframework.context.ApplicationContext
@@ -10,7 +9,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext
 class Main {
 
     @Autowired
-    CompareMismatchTickets mismatchTicketsGateway
+    MismatchTicketsProcessor mismatchTicketsGateway
 
     public Main() {
         ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
