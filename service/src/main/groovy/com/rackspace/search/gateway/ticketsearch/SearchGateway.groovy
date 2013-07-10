@@ -37,7 +37,7 @@ class SearchGateway {
                         requestContentType: "application/json",
                         query: [number: StringUtils.join(ticketNumbers, ",")])
             logger.info("Reading tickets: returned from Search api call.")
-            return response
+            return response.data.response.tickets
         } catch (Exception e) {
             logger.info("Exception", e)
         }
