@@ -242,7 +242,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.rackspace.search.Main</mainClass>
+                            <mainClass>com.rackspace.search.comparetool.Main</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

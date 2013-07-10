@@ -1,4 +1,4 @@
-package com.rackspace.search.common.property;
+package com.rackspace.search.comparetool.common.property;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

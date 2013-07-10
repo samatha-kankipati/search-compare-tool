@@ -1,4 +1,4 @@
-package com.rackspace.search
+package com.rackspace.search.comparetool
 
 import groovyx.net.http.RESTClient
 import org.apache.http.conn.scheme.Scheme

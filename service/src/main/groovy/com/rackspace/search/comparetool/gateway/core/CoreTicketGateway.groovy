@@ -1,6 +1,6 @@
-package com.rackspace.search.gateway.core
+package com.rackspace.search.comparetool.gateway.core
 
-import com.rackspace.search.HttpGatewayClient
+import com.rackspace.search.comparetool.HttpGatewayClient
 import groovy.json.JsonSlurper
 import groovyx.net.http.RESTClient
 import org.apache.commons.lang.StringUtils
