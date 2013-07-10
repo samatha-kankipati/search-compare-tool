@@ -79,11 +79,12 @@ class MismatchTicketsProcessor {
     public compareTickets() {
         def mismatches = getMismatchTickets()
         def ticketNumbersToCompare = getTicketNumbers(mismatches)
+        logger.info ("Comparing these tickets: ${ticketNumbersToCompare}")
         def ctkTicketsArray = coreTicketGateway.readCoreTickets(ticketNumbersToCompare)
         def tsTicketsArray = ticketSearchGateway.readTickets(ticketNumbersToCompare)
 
-        println "\n\nCTK:\n ${ctkTicketsArray}"
-        println "\n\nTS:\n ${tsTicketsArray}"
+        logger.info("CTK response data:\n ${ctkTicketsArray}")
+        logger.info( "TicketSearch response data:\n ${tsTicketsArray}")
         mismatches.each {mismatch ->
             def compareResult = compareTicket(ctkTicketsArray, tsTicketsArray, mismatch._source.ticketRef)
             if (compareResult) {
@@ -93,7 +94,7 @@ class MismatchTicketsProcessor {
                 mismatch._source.status = "MATCHED"
             }
         }
-        //updateMismatchedticets(mismatches)
+        updateMismatchedTickets(mismatches)
     }
 
     private compareTicket(def ctkTicketsArray, def tsTicketsArray, String ticketToCompare) {
@@ -142,7 +143,7 @@ class MismatchTicketsProcessor {
         else {
             mismatchesForThsiTicket.add("Ticket Missing from Ticket Search")
         }
-        println("${ticketToCompare}, ${mismatchesForThsiTicket}")
+        logger.info("Compare Result: ${ticketToCompare}, ${mismatchesForThsiTicket}")
         mismatchesForThsiTicket
     }
 
@@ -201,16 +202,16 @@ class MismatchTicketsProcessor {
         }
     }
 
-    public updateMismatchedticets(def updatedData) {
+    public updateMismatchedTickets(def updatedData) {
         updatedData.each() {  mismatch ->
             def jsonData = new org.json.JSONObject(mismatch._source)
             def comparisonTime = DateTime.now(DateTimeZone.UTC)
             def reported = DateTime.parse(jsonData.reportDate)
 
-            jsonData.put("matchAttempts", (jsonData.has("matchAttempts")?:0)+ 1)
+            jsonData.put("matchAttempts", (jsonData.has("matchAttempts")?jsonData.get("matchAttempts"):0)+ 1)
             jsonData.put("lastComparedTime", DateTime.now(DateTimeZone.UTC).toString())
             jsonData.put("dataMismatchPeriodSeconds", (new Duration(reported, comparisonTime)).toStandardSeconds().getSeconds())
-            println "${mismatch._id}, ${jsonData}"
+            logger.info("Updating mismatchTicket record in elasticSearch ID:${mismatch._id}, Data: ${jsonData}")
             def response = client.post(
                     path: mismatchTicketSourcePath + mismatch._id,
                     requestContentType: "application/json",
