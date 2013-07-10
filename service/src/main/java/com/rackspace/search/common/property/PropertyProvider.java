@@ -43,9 +43,9 @@ public class PropertyProvider extends PropertyPlaceholderConfigurer {
         }
     }
 
-    public static Map<String,String> getPropertiesMap(){
-        if (propertiesMap == null)  {
-            propertiesMap =  new HashMap<String, String>();
+    public static Map<String, String> getPropertiesMap() {
+        if (propertiesMap == null) {
+            propertiesMap = new HashMap<String, String>();
         }
         return propertiesMap;
 
