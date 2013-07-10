@@ -1,13 +1,13 @@
 package com.rackspace.search.gateway.core
 
 import groovyx.net.http.RESTClient
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 @Component
 @Qualifier("coreAuthGateway")

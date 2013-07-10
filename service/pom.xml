@@ -237,12 +237,12 @@
                 </executions>
             </plugin>
 
-            <!--plugin>
+            <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.rackspace.search.SearchCompare</mainClass>
+                            <mainClass>com.rackspace.search.Main</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -258,7 +258,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin-->
+            </plugin>
 
         </plugins>
     </build>
