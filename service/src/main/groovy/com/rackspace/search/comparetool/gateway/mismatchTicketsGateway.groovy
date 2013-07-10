@@ -2,6 +2,9 @@ package com.rackspace.search.comparetool.gateway
 
 import com.rackspace.search.gateway.core.CoreTicketGateway
 import com.rackspace.search.gateway.ticketsearch.SearchGateway
+import groovy.json.JsonException
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import groovyx.net.http.RESTClient
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
@@ -42,6 +45,8 @@ class MismatchTicketsGateway {
     @Autowired
     private SearchGateway ticketSearchGateway
 
+    private def slurper = new JsonSlurper()
+
     @PostConstruct
     public setup(){
         client = new RESTClient(mismatchTicketSourceURL)
@@ -65,7 +70,8 @@ class MismatchTicketsGateway {
     public compareTickets(){
         def mismatches = getMismatchTickets()
         def ticketNumbersToCompare = getTicketNumbers(mismatches)
-
+        //ticketNumbersToCompare.add("110915-08098")
+        //ticketNumbersToCompare.add("130615-06584")
         println ("\n\nTickets to Compare: \n ${ticketNumbersToCompare}")
         def ctkTicketsArray = coreTicketGateway.readCoreTickets(ticketNumbersToCompare)
         def tsTicketsArray = ticketSearchGateway.readTickets(ticketNumbersToCompare)
@@ -92,29 +98,69 @@ class MismatchTicketsGateway {
         List<String> mismatchesForThsiTicket = new ArrayList<String>()
 
         //TODO: get current ticket from CTK Array & TS Array
-        JSONObject currentCTKTicket = ctkTicketsArray.find() {ticket -> ticket.number.equals(ticketToCompare)}
-        JSONObject currentTSTicket = tsTicketsArray.find() {ticket -> ticket.number.equals(ticketToCompare)}
-
-        println (currentTSTicket)
-        //compare CTK & TS ticket for given fields in  fieldsToCompare
-        fieldsToCompare.each { field ->
-            switch(field){
-                case "account.highProfile":
-                case "createdAt":
-                case "lastPublicCommentDate":
-                case "statusTypes":
-                    break;
-                default:
-                    String ctkValue = currentCTKTicket.has(field)? currentCTKTicket.get(field) :""
-                    String tsValue = currentTSTicket.has(field)? currentTSTicket."${field}" :""
-                    if (!ctkValue.equals(tsValue)) {
-                        mismatchesForThsiTicket.add("${field}[CTK:${ctkValue}, TicketSearch:${tsValue}]")
-                    }
+        def currentCTKTicket = getTicketFromList(ctkTicketsArray,ticketToCompare)
+        def currentTSTicket = getTicketFromList(tsTicketsArray,ticketToCompare)
+        if (currentTSTicket) {
+            fieldsToCompare.each { field ->
+                switch(field){
+                    case "account.highProfile":
+                        def ctkValue = currentCTKTicket."${field}"
+                        def tsValue = readValueFromTSTicketJson(currentTSTicket, field)
+                        if (!(ctkValue.contains("High Profile") == tsValue)) {
+                            mismatchesForThsiTicket.add("${field}[CTK:${ctkValue}, TicketSearch:${tsValue}]")
+                        }
+                        break;
+                    case "createdAt":
+                    case "lastPublicCommentDate":
+                    case "statusTypes":
+                        break;
+                    default:
+                        String ctkValue = currentCTKTicket."${field}"
+                        String tsValue = readValueFromTSTicketJson(currentTSTicket, field)
+                        if (!ctkValue.equals(tsValue)) {
+                            mismatchesForThsiTicket.add("${field}[CTK:${ctkValue}, TicketSearch:${tsValue}]")
+                        }
+                }
             }
+            println ("\n${ticketToCompare}, ${mismatchesForThsiTicket}")
         }
-        println ("\n${ticketToCompare}, ${mismatchesForThsiTicket}")
+        else {
+            mismatchesForThsiTicket.add("Ticket Missing from Ticket Search")
+        }
         mismatchesForThsiTicket
     }
+
+    private getTicketFromList(def ticketsArray, String ticketToCompare) {
+        String ticketjson = (ticketsArray.find() {ticket -> ticket.number.equals(ticketToCompare)} as JSONObject).toString()
+        try {
+            def result = slurper.parseText(ticketjson)
+            result
+        }
+        catch (JsonException jex) {
+            return null
+        }
+    }
+
+    private readValueFromTSTicketJson(def tsTicketJson, String fieldName) {
+        switch(fieldName){
+            case "queue.id":
+                return tsTicketJson.queue?.id
+            case "account.highProfile":
+                return tsTicketJson.account?.highProfile
+            case "account.number":
+                return tsTicketJson.account?.number
+            case "account.team":
+                return tsTicketJson.account?.team
+            case "assignee.sso":
+                return tsTicketJson.assignee?.sso
+            case "hasWindowsServers":
+            case "hasLinuxServers":
+                return (tsTicketJson."${fieldName}" ? "true": "false")
+            default:
+                return tsTicketJson."${fieldName}"
+        }
+    }
+
     private getTicketNumbers(def mismatches){
         mismatches.collect () {mismatch ->
             mismatch._source.ticketRef
