@@ -52,7 +52,7 @@ class CoreTicketGateway {
             try {
                 response = runPostCallOnCoreGateway(jsonRequestData, ticketNumbers)
                 logger.info("Reading core tickets: returned from ATK api call.")
-                return response
+                return response.data.result[0]
             } catch (Exception e) {
                 handleException(e, attempt++)
             }
