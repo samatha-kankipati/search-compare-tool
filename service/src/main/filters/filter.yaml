@@ -1,7 +1,7 @@
 common:
 
   ## Core API
-  my.core.api.endpoint: https://ws.staging.core.rackspace.com/ctkapi
+  my.core.api.endpoint: https://ws.integration.core.rackspace.com/ctkapi
   my.core.api.username: rcameron
   my.core.api.password: qwerty
   my.mismatchTickets.source.url: http://test.elastic.search.api.rackspace.com
@@ -11,7 +11,7 @@ common:
   my.search.api.endpoint: http://test.search.api.rackspace.com/tickets
 
 local:
-  my.core.api.endpoint: https://ws.staging.core.rackspace.com/ctkapi
+  my.core.api.endpoint: https://ws.integration.core.rackspace.com/ctkapi
   my.core.db.url: jdbc:postgresql://integration-readslave.db.core.rackspace.com:5432/core_int
   my.mismatchTickets.source.url: http://test.elastic.search.api.rackspace.com
   my.mismatchTickets.source.path: /queuetest/dev-mismatchedTickets/
