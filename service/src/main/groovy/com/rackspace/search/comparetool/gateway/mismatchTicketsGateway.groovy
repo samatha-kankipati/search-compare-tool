@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
+import java.text.SimpleDateFormat
 
 @Component
 class MismatchTicketsGateway {
@@ -47,9 +48,19 @@ class MismatchTicketsGateway {
 
     private def slurper = new JsonSlurper()
 
+    @Value('${ticket.core.dateformat}')
+    def coreTicketDateFormat
+
+    @Value('${ticket.core.date.timezone}')
+    def coreTicketDateTimezone
+
+    private SimpleDateFormat coreDateFormatter
+
     @PostConstruct
     public setup(){
         client = new RESTClient(mismatchTicketSourceURL)
+        coreDateFormatter = new SimpleDateFormat(coreTicketDateFormat)
+        coreDateFormatter.setTimeZone(TimeZone.getTimeZone(coreTicketDateTimezone))
     }
 
     public getMismatchTickets() {
@@ -80,6 +91,7 @@ class MismatchTicketsGateway {
         println "\n\nTS:\n ${tsTicketsArray}"
 
         mismatches.each {mismatch ->
+
             def compareResult = compareTicket(ctkTicketsArray, tsTicketsArray, mismatch._source.ticketRef)
             if(compareResult) {
                 mismatch._source.put("mismatchDetails", compareResult.join(","))
@@ -104,7 +116,7 @@ class MismatchTicketsGateway {
             fieldsToCompare.each { field ->
                 switch(field){
                     case "account.highProfile":
-                        def ctkValue = currentCTKTicket."${field}"
+                        def ctkValue = currentCTKTicket?."${field}"?:[]
                         def tsValue = readValueFromTSTicketJson(currentTSTicket, field)
                         if (!(ctkValue.contains("High Profile") == tsValue)) {
                             mismatchesForThsiTicket.add("${field}[CTK:${ctkValue}, TicketSearch:${tsValue}]")
@@ -112,24 +124,48 @@ class MismatchTicketsGateway {
                         break;
                     case "createdAt":
                     case "lastPublicCommentDate":
+                        String defaultDate = DateTime.parse("2011-09-16T03:06:49.000+0000")
+                        String ctkValue = parseCoreDate(currentCTKTicket?."${field}")?:defaultDate
+                        String tsValue = parseTSDate(readValueFromTSTicketJson(currentTSTicket, field))?:defaultDate
+                        if (!(DateTime.parse(ctkValue).getMillis() == DateTime.parse(tsValue).getMillis())) {
+                            mismatchesForThsiTicket.add("${field}[CTK:${ctkValue}, TicketSearch:${tsValue}]")
+                        }
+                        break;
                     case "statusTypes":
                         break;
                     default:
-                        String ctkValue = currentCTKTicket."${field}"
+                        String ctkValue = currentCTKTicket?."${field}"
                         String tsValue = readValueFromTSTicketJson(currentTSTicket, field)
                         if (!ctkValue.equals(tsValue)) {
                             mismatchesForThsiTicket.add("${field}[CTK:${ctkValue}, TicketSearch:${tsValue}]")
                         }
                 }
             }
-            println ("\n${ticketToCompare}, ${mismatchesForThsiTicket}")
         }
         else {
             mismatchesForThsiTicket.add("Ticket Missing from Ticket Search")
         }
+        println ("${ticketToCompare}, ${mismatchesForThsiTicket}")
         mismatchesForThsiTicket
     }
 
+    private parseCoreDate(String coreDateValue){
+        if (coreDateValue) {
+            new DateTime(coreDateFormatter.parse(coreDateValue).getTime())
+        }
+        else {
+            coreDateValue
+        }
+    }
+
+    private parseTSDate(String tsDateValue){
+        if (tsDateValue) {
+            DateTime.parse(tsDateValue)
+        }
+        else {
+            tsDateValue
+        }
+    }
     private getTicketFromList(def ticketsArray, String ticketToCompare) {
         String ticketjson = (ticketsArray.find() {ticket -> ticket.number.equals(ticketToCompare)} as JSONObject).toString()
         try {
