@@ -1,4 +1,4 @@
-package com.rackspace.search.gateway.core
+package com.rackspace.search.comparetool.gateway.core
 
 import groovyx.net.http.RESTClient
 import org.slf4j.Logger

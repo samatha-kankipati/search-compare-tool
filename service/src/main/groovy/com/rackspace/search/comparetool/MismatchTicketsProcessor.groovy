@@ -1,7 +1,7 @@
 package com.rackspace.search.comparetool
 
-import com.rackspace.search.gateway.core.CoreTicketGateway
-import com.rackspace.search.gateway.ticketsearch.SearchGateway
+import com.rackspace.search.comparetool.gateway.core.CoreTicketGateway
+import com.rackspace.search.comparetool.gateway.ticketsearch.SearchGateway
 import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import groovyx.net.http.RESTClient
@@ -19,9 +19,9 @@ import java.text.SimpleDateFormat
 import javax.annotation.PostConstruct
 
 @Component
-class CompareMismatchTickets {
+class MismatchTicketsProcessor {
 
-    Logger logger = LoggerFactory.getLogger(CompareMismatchTickets.class)
+    Logger logger = LoggerFactory.getLogger(MismatchTicketsProcessor.class)
 
     public final String UNMATCHED = "UNMATCHED"
     private final String searchPath = "_search"
@@ -63,7 +63,6 @@ class CompareMismatchTickets {
     }
 
     public getMismatchTickets() {
-        //read mismatched tickets that are in UNMATCHED status from elastic search.
         def response = client.get(
                 path: mismatchTicketSourcePath + searchPath,
                 requestContentType: "application/json",
@@ -80,17 +79,12 @@ class CompareMismatchTickets {
     public compareTickets() {
         def mismatches = getMismatchTickets()
         def ticketNumbersToCompare = getTicketNumbers(mismatches)
-        //ticketNumbersToCompare.add("110915-08098")
-        //ticketNumbersToCompare.add("130615-06584")
-        println("\n\nTickets to Compare: \n ${ticketNumbersToCompare}")
         def ctkTicketsArray = coreTicketGateway.readCoreTickets(ticketNumbersToCompare)
         def tsTicketsArray = ticketSearchGateway.readTickets(ticketNumbersToCompare)
 
         println "\n\nCTK:\n ${ctkTicketsArray}"
         println "\n\nTS:\n ${tsTicketsArray}"
-
         mismatches.each {mismatch ->
-
             def compareResult = compareTicket(ctkTicketsArray, tsTicketsArray, mismatch._source.ticketRef)
             if (compareResult) {
                 mismatch._source.put("mismatchDetails", compareResult.join(","))
@@ -99,7 +93,7 @@ class CompareMismatchTickets {
                 mismatch._source.status = "MATCHED"
             }
         }
-        //updateMismatchticets(mismatches)
+        //updateMismatchedticets(mismatches)
     }
 
     private compareTicket(def ctkTicketsArray, def tsTicketsArray, String ticketToCompare) {
@@ -207,20 +201,15 @@ class CompareMismatchTickets {
         }
     }
 
-    public updateMismatchticets(def updatedData) {
-        //post these updated json Objects (mismatched tickets) to elastic search.
-
-        println "============"
+    public updateMismatchedticets(def updatedData) {
         updatedData.each() {  mismatch ->
             def jsonData = new org.json.JSONObject(mismatch._source)
             def comparisonTime = DateTime.now(DateTimeZone.UTC)
             def reported = DateTime.parse(jsonData.reportDate)
-            def unmatchedTimePeriod = (new Duration(reported, comparisonTime)).toStandardSeconds().getSeconds()
-            def matchAttempts = (jsonData.has("matchAttempts")) ? jsonData.get("matchAttempts") : 0
 
-            jsonData.put("matchAttempts", matchAttempts + 1)
+            jsonData.put("matchAttempts", (jsonData.has("matchAttempts")?:0)+ 1)
             jsonData.put("lastComparedTime", DateTime.now(DateTimeZone.UTC).toString())
-            jsonData.put("dataMismatchPeriodSeconds", unmatchedTimePeriod)
+            jsonData.put("dataMismatchPeriodSeconds", (new Duration(reported, comparisonTime)).toStandardSeconds().getSeconds())
             println "${mismatch._id}, ${jsonData}"
             def response = client.post(
                     path: mismatchTicketSourcePath + mismatch._id,

@@ -1,6 +1,6 @@
-package com.rackspace.search.gateway.ticketsearch
+package com.rackspace.search.comparetool.gateway.ticketsearch
 
-import com.rackspace.search.HttpGatewayClient
+import com.rackspace.search.comparetool.HttpGatewayClient
 import groovyx.net.http.RESTClient
 import org.apache.commons.lang.StringUtils
 import org.slf4j.Logger
