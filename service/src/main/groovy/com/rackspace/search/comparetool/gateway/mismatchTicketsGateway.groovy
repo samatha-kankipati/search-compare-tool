@@ -109,7 +109,6 @@ class MismatchTicketsGateway {
                                "category", "statusTypes"]
         List<String> mismatchesForThsiTicket = new ArrayList<String>()
 
-        //TODO: get current ticket from CTK Array & TS Array
         def currentCTKTicket = getTicketFromList(ctkTicketsArray,ticketToCompare)
         def currentTSTicket = getTicketFromList(tsTicketsArray,ticketToCompare)
         if (currentTSTicket) {
@@ -132,6 +131,11 @@ class MismatchTicketsGateway {
                         }
                         break;
                     case "statusTypes":
+                        List<String> ctkValue = currentCTKTicket?."${field}"?:[]
+                        List<String> tsValue = readValueFromTSTicketJson(currentTSTicket, field)?:[]
+                        if (!ctkValue.containsAll(tsValue) || !tsValue.containsAll(ctkValue)) {
+                            mismatchesForThsiTicket.add("${field}[CTK:${ctkValue}, TicketSearch:${tsValue}]")
+                        }
                         break;
                     default:
                         String ctkValue = currentCTKTicket?."${field}"
