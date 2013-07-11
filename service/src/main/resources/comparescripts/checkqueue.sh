@@ -14,7 +14,7 @@ do
     echo " "
 
     url="http://test.elastic.search.api.rackspace.com/queuetest/queuetest/$queueid"
-    jsondata="{\"queueid\": $queueid, \"compareRunCount\": $runcount, \"details\":\"$details\"}"
+    jsondata="{\"queueid\": $queueid, \"compareRunCount\": $runcount, \"details\":\"$details\", \"reportDate\": \"`date -u '+%Y-%m-%dT%H:%M:%SZ'`\"}"
     curl -X POST $url  -d "$jsondata"
 
     echo " "
