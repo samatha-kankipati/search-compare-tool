@@ -21,6 +21,8 @@ import javax.annotation.PostConstruct
 @Component
 class MismatchTicketsProcessor {
 
+    private static final String TICKET_SEARCH_UPDATE_TIMESTAMP = "TicketSearchUpdateTimestamp"
+    private static final String DOCUMENT_LAST_UPDATED_TIMESTAMP = "documentLastUpdatedTimestamp"
     Logger logger = LoggerFactory.getLogger(MismatchTicketsProcessor.class)
 
     public final String UNMATCHED = "UNMATCHED"
@@ -79,13 +81,14 @@ class MismatchTicketsProcessor {
     public compareTickets() {
         def mismatches = getMismatchTickets()
         def ticketNumbersToCompare = getTicketNumbers(mismatches)
+        logger.info ("Comparing these tickets: ${ticketNumbersToCompare}")
         def ctkTicketsArray = coreTicketGateway.readCoreTickets(ticketNumbersToCompare)
         def tsTicketsArray = ticketSearchGateway.readTickets(ticketNumbersToCompare)
 
-        println "\n\nCTK:\n ${ctkTicketsArray}"
-        println "\n\nTS:\n ${tsTicketsArray}"
+        logger.info("CTK response data:\n ${ctkTicketsArray}")
+        logger.info( "TicketSearch response data:\n ${tsTicketsArray}")
         mismatches.each {mismatch ->
-            def compareResult = compareTicket(ctkTicketsArray, tsTicketsArray, mismatch._source.ticketRef)
+            def compareResult = compareTicket(ctkTicketsArray, tsTicketsArray, mismatch)
             if (compareResult) {
                 mismatch._source.put("mismatchDetails", compareResult.join(","))
             }
@@ -93,10 +96,11 @@ class MismatchTicketsProcessor {
                 mismatch._source.status = "MATCHED"
             }
         }
-        //updateMismatchedticets(mismatches)
+        updateMismatchedTickets(mismatches)
     }
 
-    private compareTicket(def ctkTicketsArray, def tsTicketsArray, String ticketToCompare) {
+    private compareTicket(def ctkTicketsArray, def tsTicketsArray, def mismatch) {
+        String ticketToCompare =  mismatch._source.ticketRef
         def fieldsToCompare = ["queue.id", "status", "hasWindowsServers", "hasLinuxServers", "assignee.sso", "createdAt", "account.highProfile",
                 "priority", "lastPublicCommentDate", "accountServiceLevel", "account.number", "account.team", "difficulty",
                 "category", "statusTypes"]
@@ -105,6 +109,7 @@ class MismatchTicketsProcessor {
         def currentCTKTicket = getTicketFromList(ctkTicketsArray, ticketToCompare)
         def currentTSTicket = getTicketFromList(tsTicketsArray, ticketToCompare)
         if (currentTSTicket) {
+            mismatch.put(TICKET_SEARCH_UPDATE_TIMESTAMP, (currentTSTicket.get(DOCUMENT_LAST_UPDATED_TIMESTAMP)))
             fieldsToCompare.each { field ->
                 switch (field) {
                     case "account.highProfile":
@@ -142,7 +147,7 @@ class MismatchTicketsProcessor {
         else {
             mismatchesForThsiTicket.add("Ticket Missing from Ticket Search")
         }
-        println("${ticketToCompare}, ${mismatchesForThsiTicket}")
+        logger.info("Compare Result: ${ticketToCompare}, ${mismatchesForThsiTicket}")
         mismatchesForThsiTicket
     }
 
@@ -201,16 +206,18 @@ class MismatchTicketsProcessor {
         }
     }
 
-    public updateMismatchedticets(def updatedData) {
+    public updateMismatchedTickets(def updatedData) {
         updatedData.each() {  mismatch ->
             def jsonData = new org.json.JSONObject(mismatch._source)
-            def comparisonTime = DateTime.now(DateTimeZone.UTC)
+            def comparisonTime = mismatch.get(TICKET_SEARCH_UPDATE_TIMESTAMP)? DateTime.parse(mismatch.get(TICKET_SEARCH_UPDATE_TIMESTAMP))
+            :DateTime.now(DateTimeZone.UTC)
             def reported = DateTime.parse(jsonData.reportDate)
 
-            jsonData.put("matchAttempts", (jsonData.has("matchAttempts")?:0)+ 1)
+            jsonData.put("matchAttempts", (jsonData.has("matchAttempts")?jsonData.get("matchAttempts"):0)+ 1)
             jsonData.put("lastComparedTime", DateTime.now(DateTimeZone.UTC).toString())
             jsonData.put("dataMismatchPeriodSeconds", (new Duration(reported, comparisonTime)).toStandardSeconds().getSeconds())
-            println "${mismatch._id}, ${jsonData}"
+            jsonData.put(TICKET_SEARCH_UPDATE_TIMESTAMP, mismatch.get(TICKET_SEARCH_UPDATE_TIMESTAMP))
+            logger.info("Updating mismatchTicket record in elasticSearch ID:${mismatch._id}, Data: ${jsonData}")
             def response = client.post(
                     path: mismatchTicketSourcePath + mismatch._id,
                     requestContentType: "application/json",

@@ -21,5 +21,6 @@ com.sun.aas.instanceRoot_IS_UNDEFINED
 */*.orig
 */.idea
 */com.sun.aas.instanceRoot_IS_UNDEFINED
-
+*/logs
+logs
 .DS_Store
