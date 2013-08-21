@@ -8,7 +8,7 @@ common:
   my.mismatchTickets.source.path: /queuetest/dev-mismatchedTickets/
 
   ## Search API
-  my.search.api.endpoint: http://staging.search.api.rackspace.com/tickets
+  my.search.api.endpoint: http://search.api.rackspace.com/tickets
 
 local:
   my.core.api.endpoint: https://ws.staging.core.rackspace.com/ctkapi
@@ -16,10 +16,11 @@ local:
   my.mismatchTickets.source.path: /queuetest/dev-mismatchedTickets/
 
 production:
+  my.search.api.endpoint: http://search.api.rackspace.com/tickets
   ## Core API
   my.core.api.endpoint: https://ws.core.rackspace.com/ctkapi
   my.core.api.username: ticketsearchapi
 
   my.core.api.password: <TOKEN_CORE_API_PASSWORD>
   my.mismatchTickets.source.url: http://test.elastic.search.api.rackspace.com/queuetest/mismatchedTickets
-  my.mismatchTickets.source.path: /queuetest/mismatchedTickets/
+  my.mismatchTickets.source.path: /ticketmonitor/mismatchedTickets/

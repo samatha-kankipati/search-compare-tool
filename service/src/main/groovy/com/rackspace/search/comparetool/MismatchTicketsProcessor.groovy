@@ -3,6 +3,7 @@ package com.rackspace.search.comparetool
 import com.rackspace.search.comparetool.gateway.core.CoreTicketGateway
 import com.rackspace.search.comparetool.gateway.ticketsearch.SearchGateway
 import groovy.json.JsonException
+import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovyx.net.http.RESTClient
 import org.joda.time.DateTime
@@ -65,11 +66,12 @@ class MismatchTicketsProcessor {
     }
 
     public getMismatchTickets() {
+        logger.info("reading tickets from : ${mismatchTicketSourceURL}${mismatchTicketSourcePath + searchPath}")
         def response = client.get(
                 path: mismatchTicketSourcePath + searchPath,
                 requestContentType: "application/json",
                 headers: [Accept: "application/json"],
-                query: [q: "status:${UNMATCHED}", size: ticketLimit]
+                query: [q: "status:${UNMATCHED}", size: ticketLimit, sort: "lastComparedTime"]
         );
 
         response.data.hits.hits.collect() {hit ->
@@ -80,6 +82,7 @@ class MismatchTicketsProcessor {
 
     public compareTickets() {
         def mismatches = getMismatchTickets()
+        logger.info("Got ${mismatches?.size()} mismatched tickets from \${mismatchTicketSourceURL}\${mismatchTicketSourcePath + searchPath}")
         def ticketNumbersToCompare = getTicketNumbers(mismatches)
         logger.info ("Comparing these tickets: ${ticketNumbersToCompare}")
         def ctkTicketsArray = coreTicketGateway.readCoreTickets(ticketNumbersToCompare)
@@ -88,9 +91,11 @@ class MismatchTicketsProcessor {
         logger.info("CTK response data:\n ${ctkTicketsArray}")
         logger.info( "TicketSearch response data:\n ${tsTicketsArray}")
         mismatches.each {mismatch ->
-            def compareResult = compareTicket(ctkTicketsArray, tsTicketsArray, mismatch)
+            def mismatchFields = new ArrayList<String>()
+            def compareResult = compareTicket(ctkTicketsArray, tsTicketsArray, mismatch, mismatchFields)
             if (compareResult) {
-                mismatch._source.put("mismatchDetails", compareResult.join(","))
+                mismatch._source.put("compareResults_mismatchDetails", compareResult.join(","))
+                mismatch._source.put("mismatchFields", mismatchFields.join(","))
             }
             else {
                 mismatch._source.status = "MATCHED"
@@ -99,7 +104,7 @@ class MismatchTicketsProcessor {
         updateMismatchedTickets(mismatches)
     }
 
-    private compareTicket(def ctkTicketsArray, def tsTicketsArray, def mismatch) {
+    private compareTicket(def ctkTicketsArray, def tsTicketsArray, def mismatch, def mismatchFields) {
         String ticketToCompare =  mismatch._source.ticketRef
         def fieldsToCompare = ["queue.id", "status", "hasWindowsServers", "hasLinuxServers", "assignee.sso", "createdAt", "account.highProfile",
                 "priority", "lastPublicCommentDate", "accountServiceLevel", "account.number", "account.team", "difficulty",
@@ -117,6 +122,7 @@ class MismatchTicketsProcessor {
                         def tsValue = readValueFromTSTicketJson(currentTSTicket, field)?:false
                         if (!(ctkValue.contains("High Profile") == tsValue)) {
                             mismatchesForThsiTicket.add("${field}[CTK:${ctkValue}, TicketSearch:${tsValue}]")
+                            mismatchFields.add(field)
                         }
                         break;
                     case "createdAt":
@@ -126,6 +132,7 @@ class MismatchTicketsProcessor {
                         String tsValue = parseTSDate(readValueFromTSTicketJson(currentTSTicket, field)) ?: defaultDate
                         if (!(DateTime.parse(ctkValue).getMillis() == DateTime.parse(tsValue).getMillis())) {
                             mismatchesForThsiTicket.add("${field}[CTK:${ctkValue}, TicketSearch:${tsValue}]")
+                            mismatchFields.add(field)
                         }
                         break;
                     case "statusTypes":
@@ -133,6 +140,7 @@ class MismatchTicketsProcessor {
                         List<String> tsValue = readValueFromTSTicketJson(currentTSTicket, field) ?: []
                         if (!ctkValue.containsAll(tsValue) || !tsValue.containsAll(ctkValue)) {
                             mismatchesForThsiTicket.add("${field}[CTK:${ctkValue}, TicketSearch:${tsValue}]")
+                            mismatchFields.add(field)
                         }
                         break;
                     default:
@@ -140,6 +148,7 @@ class MismatchTicketsProcessor {
                         String tsValue = readValueFromTSTicketJson(currentTSTicket, field)
                         if (!ctkValue.equals(tsValue)) {
                             mismatchesForThsiTicket.add("${field}[CTK:${ctkValue}, TicketSearch:${tsValue}]")
+                            mismatchFields.add(field)
                         }
                 }
             }
@@ -187,7 +196,7 @@ class MismatchTicketsProcessor {
             case "account.highProfile":
                 return tsTicketJson.account?.highProfile
             case "account.number":
-                return tsTicketJson.account?.number
+                return "0".equals(tsTicketJson.account?.number) ? null : tsTicketJson.account?.number
             case "account.team":
                 return tsTicketJson.account?.team
             case "assignee.sso":
@@ -215,7 +224,7 @@ class MismatchTicketsProcessor {
 
             jsonData.put("matchAttempts", (jsonData.has("matchAttempts")?jsonData.get("matchAttempts"):0)+ 1)
             jsonData.put("lastComparedTime", DateTime.now(DateTimeZone.UTC).toString())
-            jsonData.put("dataMismatchPeriodSeconds", (new Duration(reported, comparisonTime)).toStandardSeconds().getSeconds())
+            jsonData.put("dataMismatchPeriodSeconds", (new Duration(comparisonTime, reported)).toStandardSeconds().getSeconds())
             jsonData.put(TICKET_SEARCH_UPDATE_TIMESTAMP, mismatch.get(TICKET_SEARCH_UPDATE_TIMESTAMP))
             logger.info("Updating mismatchTicket record in elasticSearch ID:${mismatch._id}, Data: ${jsonData}")
             def response = client.post(
@@ -225,4 +234,5 @@ class MismatchTicketsProcessor {
             )
         }
     }
+
 }
