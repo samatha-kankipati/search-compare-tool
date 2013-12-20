@@ -1,26 +1,57 @@
 common:
 
+  ## Search API
+  my.search.api.endpoint: http://staging.search.api.rackspace.com/tickets
+
   ## Core API
   my.core.api.endpoint: https://ws.staging.core.rackspace.com/ctkapi
   my.core.api.username: rcameron
   my.core.api.password: qwerty
-  my.mismatchTickets.source.url: http://test.elastic.search.api.rackspace.com
-  my.mismatchTickets.source.path: /queuetest/dev-mismatchedTickets/
 
+  ## SCT
+  my.mismatchTickets.source.url: http://10.14.210.166:9200/
+  my.mismatchTickets.source.path: ticketmonitor-staging/mismatchedTickets/
+  my.sct.es.username: ts_rw
+  my.sct.es.password: <TOKEN_ES_RW_PASSWORD>
+
+  ## Zendesk
+  my.zendesk.api.endpoint: https://mosso.zendesk.com/api/
+  my.zendesk.api.username: itsm_api@lists.mosso.com
+  my.zendesk.api.password: j@cks
+  my.technology.custom.field.id: 108885
+  my.zendesk.api.tickets.path: v2/tickets/show_many.json
+  my.zendesk.api.user.endpoint: v2/users/userId.json
+  my.zendesk.api.group.endpoint: v2/groups/groupId.json
+
+  ## Account
+  my.account.api.endpoint: https://staging.account.api.rackspace.com/v1.0/accounts
+  my.account.api.username: ticketsearchapi
+  my.account.api.password: <TOKEN_ACCOUNT_API_PASSWORD>
+
+
+
+staging:
+
+
+production:
   ## Search API
   my.search.api.endpoint: http://search.api.rackspace.com/tickets
 
-local:
-  my.core.api.endpoint: https://ws.staging.core.rackspace.com/ctkapi
-  my.mismatchTickets.source.url: http://test.elastic.search.api.rackspace.com
-  my.mismatchTickets.source.path: /queuetest/dev-mismatchedTickets/
-
-production:
-  my.search.api.endpoint: http://search.api.rackspace.com/tickets
   ## Core API
   my.core.api.endpoint: https://ws.core.rackspace.com/ctkapi
   my.core.api.username: ticketsearchapi
-
   my.core.api.password: <TOKEN_CORE_API_PASSWORD>
-  my.mismatchTickets.source.url: http://test.elastic.search.api.rackspace.com/queuetest/mismatchedTickets
-  my.mismatchTickets.source.path: /ticketmonitor/mismatchedTickets/
+
+  ## SCT
+  my.mismatchTickets.source.path: ticketmonitor/mismatchedTickets/
+
+  ## ZENDESK
+  my.zendesk.api.endpoint:  https://rackspacecloud.zendesk.com/api/
+  my.zendesk.api.username: joe.mcbride@rackspace.com
+  my.zendesk.api.password: <TOKEN_ZENDESK_API_PASSWORD>
+  my.technology.custom.field.id: 115031
+
+  ## Account
+  my.account.api.endpoint: https://account.api.rackspace.com/v1.0/accounts
+  my.account.api.username: ticketsearchapi
+  my.account.api.password: <TOKEN_ACCOUNT_API_PASSWORD>
