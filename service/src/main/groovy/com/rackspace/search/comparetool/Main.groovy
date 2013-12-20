@@ -9,7 +9,10 @@ import org.springframework.context.support.ClassPathXmlApplicationContext
 class Main {
 
     @Autowired
-    MismatchTicketsProcessor mismatchTicketsGateway
+    CoreTicketMismatchProcessor coreTicketMismatchProcessor
+
+    @Autowired
+    ZendeskTicketMismatchProcessor zendeskTicketMismatchProcessor
 
     public Main() {
         ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
@@ -23,8 +26,8 @@ class Main {
         System.setProperty("config.location", configLocation)
 
         Main mainTest = new Main()
-
-        mainTest.mismatchTicketsGateway.compareTickets()
+        mainTest.coreTicketMismatchProcessor.compareTickets()
+        mainTest.zendeskTicketMismatchProcessor.compareTickets()
     }
 
 

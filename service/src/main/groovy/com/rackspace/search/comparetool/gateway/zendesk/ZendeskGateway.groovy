@@ -66,6 +66,7 @@ class ZendeskGateway {
 
     private Map<String, CacheObject> cacheData = new HashMap<String, CacheObject>()
     private DateTime cleanExecutionTime = new DateTime(DateTimeZone.UTC)
+    int cacheTimeInMinutes = 5
 
     @PostConstruct
     void setup() {
@@ -114,7 +115,7 @@ class ZendeskGateway {
     }
 
     public void updateCache(key, name, email) {
-        CacheObject newCache = new CacheObject(key, name, email, 2)
+        CacheObject newCache = new CacheObject(key, name, email, cacheTimeInMinutes)
         cacheData.put(key, newCache);
 
     }
@@ -122,7 +123,7 @@ class ZendeskGateway {
     public void cleanCache() {
         if (DateTime.now(DateTimeZone.UTC).isAfter(cleanExecutionTime)) {
             cacheData = cacheData.findAll() { cache -> !cache.getValue().isExpired()}
-            cleanExecutionTime = cleanExecutionTime.plusMinutes(2)
+            cleanExecutionTime = cleanExecutionTime.plusMinutes(cacheTimeInMinutes)
         }
     }
 
