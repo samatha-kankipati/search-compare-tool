@@ -12,4 +12,9 @@
 
     <context:component-scan base-package="com.rackspace.search"/>
 
+
+    <!-- define a bean to get us a JerseyClient so we can replace it in testing -->
+    <bean id="jerseyClient" name="Rest Client" class="com.sun.jersey.api.client.Client" factory-method="create"/>
+
+
 </beans>
